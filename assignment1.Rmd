@@ -1,0 +1,115 @@
+---
+title: "markdowntest"
+author: "Kelly Okech"
+date: "Monday, June 08, 2015"
+output: html_document
+---
+This is a report detailing the steps I took in answering assignment 1 in reproducible research class. 
+
+So, to begin, we'll load the csv file and probably try to explore the data in it
+
+```{r}
+activity <- read.table("activity.csv", header=T, sep=",")
+
+# convert date to date data type
+activity$date <- as.Date(activity$date)
+str(activity)
+
+```
+
+Doing away with missing values
+
+```{r}
+# Doing away with na values
+activity1 <- na.omit(activity)
+
+#Checking new structure
+str(activity1)
+```
+
+Question 1: total mean number of steps taken per day
+
+Grouping the rows into 24hour intervals and determining their sum
+```{r}
+daily.steps <- rowsum(activity1$steps, format(activity1$date, '%Y-%m-%d')) 
+daily.steps <- data.frame(daily.steps) 
+names(daily.steps) <- ("steps") 
+```
+
+Plot a histogram of steps variable to explore the data further
+```{r}
+hist(daily.steps$steps, main = "daily steps", xlab = "Total daily steps")
+abline(v = mean(daily.steps$steps), col = "Blue")
+```
+
+Calculate the mean value
+```{r}
+mean(daily.steps$steps)
+```
+
+Calculate the median value
+```{r}
+median(daily.steps$steps)
+```
+
+Question 2: Find the average daily activity pattern
+
+```{r}
+library(plyr)
+# average steps for each of 5-minute interval during a 24-hour period
+interval <- ddply(activity1,~interval, summarise, mean=mean(steps))
+```
+
+Time series plot of the intervals and average steps
+
+```{r}
+library(ggplot2)
+qplot(x=interval, y=mean, data = interval,  geom = "line",
+      xlab="5-Minute Interval",
+      ylab="Step Count",
+      main="Average Number of Steps in 24 hours across all the days"
+      )
+```
+
+Finding out which 5 minute intervals has the highest number of steps
+
+```{r}
+interval[which.max(interval$mean), ]
+```
+
+Question 3: imputing missing values
+
+Finding th total number fo missing values in the data set.
+
+```{r}
+#use the str function on data set activity1.Total number of na values is indicated somewhere in there as 2304
+str(activity1)
+```
+
+alternatively, you can run this code to find out how many missing values are in the variable 'steps'
+
+```{r}
+sum(is.na(activity$steps))
+```
+
+We need to fil in the missing data
+
+```{r}
+fill <- activity
+
+
+#check for missing value
+sum(is.na(fill))
+```
+
+Make another histogram to compare with the first one
+
+```{r}
+newsteps<-tapply(fill$steps, fill$date, sum)
+```
+
+
+
+
+
+
